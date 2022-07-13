@@ -31,19 +31,28 @@ Resources:
 
       Events:
         ApiEvent:
-          Type: Api 
+          Type: HttpApi 
           Properties:
             Path: /count
             Method: POST
-            RestApiId:
+            ApiId:
               Ref: CRCBackendApiGateway
+
+  CRCBackendApiGatewayLogging:
+    DestinationArn: !GetAtt CRCBackendApiGatewayAccessLogs.Arn
+    Format: $context.requestId
+  
+  CRCBackendApiGatewayAccessLogs:
+    Type: AWS::Logs::LogGroup
 
   CRCBackendApiGateway:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: prod
+      AccessLogSettings:
+
       CorsConfiguration:
-        AllowCredentials: true
+        AllowCredentials: false
         AllowMethods:
           - GET
           - POST
@@ -65,21 +74,13 @@ Resources:
         Department: Engineering
         AppType: Cloud Resume challenge serverless
 
-  # CRCDynamodbTable:
-  #   Type: AWS::DynamoDB::Table
-  #   Properties: 
-  #     AttributeDefinitions: 
-  #       - AttributeName: VisitorCountID
-  #         AttributeType: S
-      
-  #       - AttributeName: Count
-  #         AttributeType: S
-      
-  #     KeySchema:
-  #       - AttributeName: VisitorCountID
-  #         KeyType: HASH
-        
-  #       - AttributeName: Count
-  #         KeyType: RANGE
-  #     BillingMode: PAY_PER_REQUEST
+  Outputs:
+    HttpApiUrl:
+      Description: URL of your API endpoint
+      Value:
+        Fn::Sub: 'https://${CRCBackendApiGateway}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${StageName}/'
+    HttpApiId:
+      Description: Api id of HttpApi
+      Value:
+        Ref: CRCBackendApiGateway
   

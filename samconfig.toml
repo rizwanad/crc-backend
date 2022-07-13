@@ -2,9 +2,9 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "test-sam-template"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-17v3cu6173l1x"
-s3_prefix = "test-sam-template"
+stack_name = "crc-backend-app"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1m51mud378wn6"
+s3_prefix = "crc-backend-app"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
