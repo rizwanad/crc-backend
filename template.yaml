@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Timeout: 3
+
+Description: >
+  CRC Backend app
+
+  Cloud resume challenge backend application.
+
+Resources:
+  CRCBackendLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties: 
+      CodeUri: src/
+      Handler: index.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: Stats
+        - AWSLambdaBasicExecutionRole
+
+      Events:
+        ApiEvent:
+          Type: Api 
+          Properties:
+            Path: /count
+            Method: POST
+            RestApiId:
+              Ref: CRCBackendApiGateway
+
+  CRCBackendApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: "'POST, GET'"
+        AllowHeaders: "'CONTENT-TYPE'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+  
+  CRCDynamodbTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: VisitorCountID
+          AttributeType: S
+      
+        - AttributeName: Count
+          AttributeType: S
+      
+      KeySchema:
+        - AttributeName: VisitorCountID
+          KeyType: HASH
+        
+        - AttributeName: Count
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      TableName: Stats
+  
