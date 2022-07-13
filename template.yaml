@@ -1,6 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+# Globals that shared sam resources e.g, below applied to all Functions.
 Globals:
   Function:
     Timeout: 3
@@ -15,14 +16,18 @@ Resources:
     Type: AWS::Serverless::Function
     Properties: 
       CodeUri: src/
-      Handler: index.handler
+      Handler: app.handler
       Runtime: nodejs16.x
       Architectures:
         - x86_64
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: Stats
+            TableName: !Ref CRCDynamodbTable
         - AWSLambdaBasicExecutionRole
+
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref CRCDynamodbTable
 
       Events:
         ApiEvent:
@@ -34,31 +39,47 @@ Resources:
               Ref: CRCBackendApiGateway
 
   CRCBackendApiGateway:
-    Type: AWS::Serverless::Api
+    Type: AWS::Serverless::HttpApi
     Properties:
       StageName: prod
-      Cors:
-        AllowMethods: "'POST, GET'"
-        AllowHeaders: "'CONTENT-TYPE'"
-        AllowOrigin: "'*'"
-        MaxAge: "'600'"
-  
+      CorsConfiguration:
+        AllowCredentials: true
+        AllowMethods:
+          - GET
+          - POST
+        AllowHeaders:
+          - CONTENT-TYPE
+        AllowOrigins:
+          - "*"
+        MaxAge: 600
+      # Cors:
+      #   AllowMethods: "'POST, GET'"
+      #   AllowHeaders: "'CONTENT-TYPE'"
+      #   AllowOrigin: "'*'"
+      #   MaxAge: "'600'"
+
   CRCDynamodbTable:
-    Type: AWS::DynamoDB::Table
-    Properties: 
-      AttributeDefinitions: 
-        - AttributeName: VisitorCountID
-          AttributeType: S
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      Tags:
+        Department: Engineering
+        AppType: Cloud Resume challenge serverless
+
+  # CRCDynamodbTable:
+  #   Type: AWS::DynamoDB::Table
+  #   Properties: 
+  #     AttributeDefinitions: 
+  #       - AttributeName: VisitorCountID
+  #         AttributeType: S
       
-        - AttributeName: Count
-          AttributeType: S
+  #       - AttributeName: Count
+  #         AttributeType: S
       
-      KeySchema:
-        - AttributeName: VisitorCountID
-          KeyType: HASH
+  #     KeySchema:
+  #       - AttributeName: VisitorCountID
+  #         KeyType: HASH
         
-        - AttributeName: Count
-          KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
-      TableName: Stats
+  #       - AttributeName: Count
+  #         KeyType: RANGE
+  #     BillingMode: PAY_PER_REQUEST
   

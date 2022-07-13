@@ -1,31 +1,36 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddbDocClient } from "./libs/document.js";
 
-function getRandomInt(max) {
+function getRandomInt(max = 29) {
   return Math.floor(Math.random() * max);
 }
 
-const count = getRandomInt(20);
-
-const params = {
-  TableName: "Stats",
-  Item: {
-      VisitorCountID: `uuid-${new Date().getTime()}`,
-      Count: `${count}`,
-  },
-};
+function getUuid() {
+  return String(new Date().getTime());
+}
 
 export async function handler() {
+  const TABLE_NAME = process.env.TABLE_NAME;
+
   try {
     const data = await ddbDocClient.send(
-      new PutCommand(params)
+      new PutCommand({
+        TableName: TABLE_NAME,
+        Item: {
+          id: getUuid(),
+          count: getRandomInt()
+        }
+      })
     );
     return {
-      "statusCode": 200,
-      "body": { count, ...data },
-      "isBase64Encoded": false
+      statusCode: 200,
+      isBase64Encoded: false,
+      body: { count, ...data }
     };
   } catch(err) {
       console.log(err);
+      return {
+        statusCode: 500
+      };
   }
 };
